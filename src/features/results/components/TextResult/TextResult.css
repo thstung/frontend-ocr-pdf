@@ -1,0 +1,22 @@
+.text-result-wrapper {
+    background: white;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid black;
+}
+
+.text-result-data-section {
+    min-height: 300px;
+    white-space: pre;
+    padding: 8px;
+}
+
+.text-result-action-section {
+    padding: 8px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid gainsboro;
+}

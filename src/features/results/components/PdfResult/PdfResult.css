@@ -1,0 +1,19 @@
+.pdf-result-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: 1px solid black;
+}
+
+.pdf-result-action {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    padding: 8px;
+    border-bottom: 1px solid black;
+}
+
+.pdf-result-data {
+    flex: 1;
+}
