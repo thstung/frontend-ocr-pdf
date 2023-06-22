@@ -1,0 +1,16 @@
+.result-page-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    padding: 16px;
+    height: calc(100vh - 32px);
+    background: gainsboro;
+}
+
+.result-page-left-section {
+    flex: 1;
+}
+
+.result-page-right-section {
+    flex: 1;
+}
