@@ -2,13 +2,17 @@ import { Button } from 'antd';
 import { Image as ImageConstructor } from 'konva';
 import { useEffect, useRef, useState } from 'react';
 import { Layer, Stage } from 'react-konva';
+import { useSelector } from 'react-redux';
 import Rectangle from '../../../../konva-components/rectangle/Rectangle';
+import { resultStateSelector } from '../../reducers/result.reducer';
 import './PdfResult.css';
 
 export default function PdfResult() {
     const divRef = useRef(null);
     const stageRef = useRef(null);
     const layerRef = useRef(null);
+
+    const resultState = useSelector(resultStateSelector);
 
     const [dimensions, setDimensions] = useState({
         width: 0,
@@ -20,7 +24,7 @@ export default function PdfResult() {
 
     const checkDeselect = (e) => {
         // deselect when clicked on empty area
-        const selectingShape = stageRef.current.find(`#${selectedId}`)[0];
+        const selectingShape = stageRef.current.findOne(`#${selectedId}`);
         if (!selectingShape) return;
 
         if (!e.target.getParent() || e.target.getParent().className === 'Transformer') {
@@ -40,40 +44,102 @@ export default function PdfResult() {
                 height: divRef.current.offsetHeight,
             });
         }
+    }, []);
+
+    useEffect(() => {
+        if (resultState.selectedIndex < 0) return;
+        const selectedData = (resultState.data || [])[resultState.selectedIndex];
+        if (!selectedData) return;
 
         const image = new Image();
         image.onload = function () {
-            setImage(this);
+            const { width: ratioWidth, height: ratioHeight } = setImage(this);
+
+            const metadata = selectedData.metadata;
+            const textData = (metadata || {}).text_metadata || [];
+            const tableData = (metadata || {}).table_metadata || [];
+
+            const props = [
+                ...textData.map((data) => {
+                    const [x, y, width, height] = data['text-region'];
+                    return {
+                        x: Math.round(x * ratioWidth),
+                        y: Math.round(y * ratioHeight),
+                        width: Math.round(width * ratioWidth),
+                        height: Math.round(height * ratioHeight),
+                        stroke: 'blue',
+                    };
+                }),
+                ...tableData.map((data) => {
+                    const [x, y, width, height] = data['table_coordinate'];
+                    return {
+                        x: Math.round(x * ratioWidth),
+                        y: Math.round(y * ratioHeight),
+                        width: Math.round(width * ratioWidth),
+                        height: Math.round(height * ratioHeight),
+                        stroke: 'red',
+                    };
+                }),
+            ];
+            addBoxes(props, true);
         };
-        image.src = `https://images.unsplash.com/photo-1575936123452-b67c3203c357?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8aW1hZ2V8ZW58MHx8MHx8fDA%3D&w=1000&q=80`;
-        image.crossOrigin = 'Anonymous';
-    }, []);
+        image.src = selectedData.image_metadata;
+    }, [resultState.selectedIndex]);
 
     const setImage = (imageObj) => {
         const imageRatio = imageObj.width / imageObj.height;
 
+        let currentWidth = dimensions.width;
+        let currentHeight = dimensions.height;
+        const heightIfKeepWidth = currentWidth / imageRatio;
+        const widthIfKeepHeight = currentHeight * imageRatio;
+        if (heightIfKeepWidth < currentHeight) {
+            currentHeight = heightIfKeepWidth;
+        } else {
+            currentWidth = widthIfKeepHeight;
+        }
+
         const img = new ImageConstructor({
+            id: `image`,
             image: imageObj,
-            width: divRef.current.offsetWidth,
-            height: divRef.current.offsetWidth / imageRatio,
+            width: currentWidth,
+            height: currentHeight,
         });
 
+        const currentImage = layerRef.current.findOne(`#image`);
+        if (currentImage) {
+            currentImage.destroy();
+        }
+
         layerRef.current.add(img);
+
+        return {
+            width: currentWidth / imageObj.width,
+            height: currentHeight / imageObj.height,
+        };
     };
 
-    const addBox = (options = {}) => {
-        const newRectProps = {
-            id: `${Date.now()}`,
-            x: 0,
-            y: 0,
-            width: 50,
-            height: 50,
-            stroke: 'red',
-            draggable: true,
-            ...options,
-        };
+    const addBoxes = async (options = [], reset = false) => {
+        const rectProps = options.map((option) => {
+            const newRectProps = {
+                id: `${Date.now()}-${Math.round(Math.random() * 100000)}`,
+                x: 0,
+                y: 0,
+                width: 50,
+                height: 50,
+                stroke: 'red',
+                draggable: true,
+                ...option,
+            };
 
-        setRectangles([...rectangles, newRectProps]);
+            return newRectProps;
+        });
+
+        if (reset) {
+            setRectangles([...rectProps]);
+        } else {
+            setRectangles([...rectangles, ...rectProps]);
+        }
     };
 
     const downloadURI = (uri, name) => {
@@ -92,8 +158,9 @@ export default function PdfResult() {
     return (
         <div className="pdf-result-wrapper">
             <div className="pdf-result-action">
-                <Button onClick={() => addBox({ stroke: 'red' })}>Add red box</Button>
-                <Button onClick={() => addBox({ stroke: 'blue' })}>Add blue box</Button>
+                <Button onClick={() => {}}>Show table</Button>
+                <Button onClick={() => addBoxes([{ stroke: 'red' }])}>Add red box</Button>
+                <Button onClick={() => addBoxes([{ stroke: 'blue' }])}>Add blue box</Button>
                 <Button onClick={saveLink}>Save</Button>
             </div>
             <div className="pdf-result-data" ref={divRef}>
@@ -108,7 +175,7 @@ export default function PdfResult() {
                         {rectangles.map((rect, i) => {
                             return (
                                 <Rectangle
-                                    key={i}
+                                    key={rect.id}
                                     shapeProps={rect}
                                     isSelected={rect.id === selectedId}
                                     onSelect={() => {

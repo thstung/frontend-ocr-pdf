@@ -1,21 +1,15 @@
-import { useEffect } from 'react';
 import PdfResult from '../../components/PdfResult/PdfResult';
 import TextResult from '../../components/TextResult/TextResult';
+import ImageList from '../../components/ImageList/ImageList';
 
-import { useDispatch } from 'react-redux';
-import { addText } from '../../reducers/result.reducer';
 import './ResultPage.css';
 
 export default function ResultPage() {
-    const dispatch = useDispatch();
-
-    useEffect(() => {
-        dispatch(addText('kaka'));
-        dispatch(addText('koko'));
-    }, []);
-
     return (
         <div className="result-page-wrapper">
+            <div className="result-page-left-panel">
+                <ImageList />
+            </div>
             <div className="result-page-left-section">
                 <PdfResult />
             </div>
