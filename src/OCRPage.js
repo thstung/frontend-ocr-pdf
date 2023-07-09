@@ -423,207 +423,266 @@
 
 import React, { useState } from 'react';
 import { FaFilePdf, FaDownload, FaEye, FaTrash, FaRedo } from 'react-icons/fa';
+import { AxiosInstance } from './plugins/axios';
+import { addData } from './features/results/reducers/result.reducer';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const OCRPage = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [ocrInProgress, setOcrInProgress] = useState(false);
-  const [ocrAfterProgress, setOcrAfterProgress] = useState(false);
-  const [processingFileName, setProcessingFileName] = useState('');
-  const [buttonDisabled, setButtonDisabled] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [ocrInProgress, setOcrInProgress] = useState(false);
+    const [ocrAfterProgress, setOcrAfterProgress] = useState(false);
+    const [processingFileName, setProcessingFileName] = useState('');
+    const [buttonDisabled, setButtonDisabled] = useState(false);
+    const BASE_URL = 'http://localhost:3502';
+    const axios = AxiosInstance.create({
+        baseURL: BASE_URL,
+    });
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
+    const handleFileChange = (event) => {
+        setSelectedFile(event.target.files[0]);
+    };
 
-  const handleOCRClick = () => {
-    if (selectedFile) {
-      setOcrInProgress(true);
-      setProcessingFileName(selectedFile.name);
-      setButtonDisabled(true);
+    const handleOCRClick = async () => {
+        if (selectedFile) {
+            setOcrInProgress(true);
+            setProcessingFileName(selectedFile.name);
+            setButtonDisabled(true);
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            const response = await axios.post(`${BASE_URL}/api/preprocess`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            if (response?.success) {
+                const images = response.data || [];
+                let index = 1;
+                for (const image of images) {
+                    const file = base64ToFile(image.page, `page_${index}.jpg`);
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const response = await axios.post(`${BASE_URL}/api/ocr`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' },
+                    });
 
-      // Simulate OCR processing (replace with your actual OCR logic)
-      setTimeout(() => {
-        setOcrInProgress(false);
-        setOcrAfterProgress(true)
-        setSelectedFile(null);
-        setProcessingFileName('');
-        setButtonDisabled(false);
-      }, 2000);
-    }
-  };
+                    if (response?.success) {
+                        const data = response?.data || {};
+                        data.image_metadata = image.page;
+                        dispatch(addData(data));
+                    }
 
-  const handleDownloadClick = () => {
-    // Handle download action
-  };
+                    index++;
+                }
+            } else {
+            }
+            // Simulate OCR processing (replace with your actual OCR logic)
+            setOcrInProgress(false);
+            setOcrAfterProgress(true);
+            setSelectedFile(null);
+            setProcessingFileName('');
+            setButtonDisabled(false);
+        }
+    };
 
-  const handlePreviewClick = () => {
-    // Handle preview action
-  };
+    const handleDownloadClick = () => {
+        // Handle download action
+    };
 
-  const handleDeleteClick = () => {
-    // Handle delete action
-    setOcrAfterProgress(false);
-  };
+    const handlePreviewClick = () => {
+        // Handle preview action
+        navigate('result');
+    };
 
-  const handleRestartClick = () => {
-    // Handle restart action
-  };
+    const handleDeleteClick = () => {
+        // Handle delete action
+        setOcrAfterProgress(false);
+    };
 
-  return (
-    <div>
-      <div>
-        <header style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-start',
-          borderBottom: '3px solid #007bff',
-          padding: '10px',
-          color: '#007bff',
-          fontWeight: 'bold',
-        }}>
-          <FaFilePdf size={40} style={{ marginRight: '10px' }} />
-          <span>PDF OCR</span>
-        </header>
-      </div>
-      <main>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h1 style={{ color: 'black', fontFamily: 'Arial' }}>PDF OCR</h1>
-          <p style={{ color: 'black', fontFamily: 'Arial' }}>Nhận diện nội dung qua OCR và trích xuất thông tin từ file pdf báo cáo tài chính</p>
-          <ul style={{ color: 'black', fontFamily: 'Arial', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
-            <li style={{ listStyle: 'none', marginRight: '10px' }}>
-              <span style={{ color: 'green', marginRight: '5px' }}>✓</span>Miễn phí
-            </li>
-            <li style={{ listStyle: 'none', marginRight: '10px' }}>
-              <span style={{ color: 'green', marginRight: '5px' }}>✓</span>Trực tuyến
-            </li>
-          </ul>
-        </div>
-        <div
-          style={{
-            width: '80%',
-            height: '250px',
-            border: '2px dashed darkblue',
-            backgroundColor: ocrInProgress ? '#fff' : ocrAfterProgress ? '#fff' : '#fffce5',
-            boxShadow: '10px 10px 10px rgba(0, 0, 0, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '10px',
-            margin: '0 auto',
-          }}
-        >
-          {ocrInProgress ? (
-            <div>
-              <p style={{ color: 'black', textAlign: 'center' }}>Công việc đang được xử lý. Xin chờ một chút.</p>
-              <p style={{ color: 'black', textAlign: 'center' }}>{processingFileName}</p>
-            </div>
-          ) : ocrAfterProgress ? (
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ color: 'black', fontFamily: 'Arial' }}>Công việc của bạn đã được xử lý:</p>
-              <p style={{ color: 'black', fontFamily: 'Arial', fontWeight: 'bold' }}>{processingFileName}</p>
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-                <button
-                  onClick={handleDownloadClick}
-                  style={{
-                    borderRadius: '20px',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    cursor: 'pointer',
-                    margin: '0 5px',
-                    padding: '10px 20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  <FaDownload style={{ marginRight: '5px' }} /> Download
-                </button>
-                <button
-                  onClick={handlePreviewClick}
-                  style={{
-                    borderRadius: '20px',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    cursor: 'pointer',
-                    margin: '0 5px',
-                    padding: '10px 20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  <FaEye style={{ marginRight: '5px' }} /> Xem trước
-                </button>
-                <button
-                  onClick={handleDeleteClick}
-                  style={{
-                    borderRadius: '20px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    cursor: 'pointer',
-                    margin: '0 5px',
-                    padding: '10px 20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  <FaTrash style={{ marginRight: '5px' }} /> Xóa
-                </button>
-                <button
-                  onClick={handleRestartClick}
-                  style={{
-                    borderRadius: '20px',
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    cursor: 'pointer',
-                    margin: '0 5px',
-                    padding: '10px 20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  <FaRedo style={{ marginRight: '5px' }} /> Khởi động lại
-                </button>
-              </div>
-            </div>
-          ) 
-          : (
-            <div>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={handleFileChange}
-                style={{
-                  borderRadius: '20px',
-                  padding: '10px 20px',
-                  backgroundColor: '#d97d0d',
-                  color: 'white',
-                  cursor: 'pointer',
-                  fontSize: '18px'
-                }}
-              />
-              <p style={{ color: 'white', textAlign: 'center', marginTop: '10px' }}>Chọn tệp</p>
-            </div>
-          )}
-        </div>
+    const handleRestartClick = () => {
+        // Handle restart action
+    };
+    const base64ToFile = (dataurl, filename) => {
+        var arr = dataurl.split(','),
+            mime = arr[0].match(/:(.*?);/)[1],
+            bstr = atob(arr[arr.length - 1]),
+            n = bstr.length,
+            u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, { type: mime });
+    };
+    return (
         <div>
-          <button
-            onClick={handleOCRClick}
-            disabled={buttonDisabled || !selectedFile}
-            style={{
-              borderRadius: '20px',
-              backgroundColor: buttonDisabled ? '#ccc' : '#d97d0d',
-              color: 'white',
-              cursor: buttonDisabled ? 'default' : 'pointer',
-              marginTop: '20px',
-              fontSize: '22px',
-              padding: '10px 20px',
-            }}
-          >
-            {ocrInProgress ? 'Đang xử lý OCR...' : 'Khởi động OCR'}
-          </button>
+            <div>
+                <header
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        borderBottom: '3px solid #007bff',
+                        padding: '10px',
+                        color: '#007bff',
+                        fontWeight: 'bold',
+                    }}
+                >
+                    <FaFilePdf size={40} style={{ marginRight: '10px' }} />
+                    <span>PDF OCR</span>
+                </header>
+            </div>
+            <main>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <h1 style={{ color: 'black', fontFamily: 'Arial' }}>PDF OCR</h1>
+                    <p style={{ color: 'black', fontFamily: 'Arial' }}>
+                        Nhận diện nội dung qua OCR và trích xuất thông tin từ file pdf báo cáo tài chính
+                    </p>
+                    <ul
+                        style={{
+                            color: 'black',
+                            fontFamily: 'Arial',
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <li style={{ listStyle: 'none', marginRight: '10px' }}>
+                            <span style={{ color: 'green', marginRight: '5px' }}>✓</span>Miễn phí
+                        </li>
+                        <li style={{ listStyle: 'none', marginRight: '10px' }}>
+                            <span style={{ color: 'green', marginRight: '5px' }}>✓</span>Trực tuyến
+                        </li>
+                    </ul>
+                </div>
+                <div
+                    style={{
+                        width: '80%',
+                        height: '250px',
+                        border: '2px dashed darkblue',
+                        backgroundColor: ocrInProgress ? '#fff' : ocrAfterProgress ? '#fff' : '#fffce5',
+                        boxShadow: '10px 10px 10px rgba(0, 0, 0, 0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '10px',
+                        margin: '0 auto',
+                    }}
+                >
+                    {ocrInProgress ? (
+                        <div>
+                            <p style={{ color: 'black', textAlign: 'center' }}>
+                                Công việc đang được xử lý. Xin chờ một chút.
+                            </p>
+                            <p style={{ color: 'black', textAlign: 'center' }}>{processingFileName}</p>
+                        </div>
+                    ) : ocrAfterProgress ? (
+                        <div style={{ textAlign: 'center' }}>
+                            <p style={{ color: 'black', fontFamily: 'Arial' }}>Công việc của bạn đã được xử lý:</p>
+                            <p style={{ color: 'black', fontFamily: 'Arial', fontWeight: 'bold' }}>
+                                {processingFileName}
+                            </p>
+                            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                                <button
+                                    onClick={handleDownloadClick}
+                                    style={{
+                                        borderRadius: '20px',
+                                        backgroundColor: '#007bff',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        margin: '0 5px',
+                                        padding: '10px 20px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <FaDownload style={{ marginRight: '5px' }} /> Download
+                                </button>
+                                <button
+                                    onClick={handlePreviewClick}
+                                    style={{
+                                        borderRadius: '20px',
+                                        backgroundColor: '#28a745',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        margin: '0 5px',
+                                        padding: '10px 20px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <FaEye style={{ marginRight: '5px' }} /> Xem trước
+                                </button>
+                                <button
+                                    onClick={handleDeleteClick}
+                                    style={{
+                                        borderRadius: '20px',
+                                        backgroundColor: '#6c757d',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        margin: '0 5px',
+                                        padding: '10px 20px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <FaTrash style={{ marginRight: '5px' }} /> Xóa
+                                </button>
+                                <button
+                                    onClick={handleRestartClick}
+                                    style={{
+                                        borderRadius: '20px',
+                                        backgroundColor: '#dc3545',
+                                        color: 'white',
+                                        cursor: 'pointer',
+                                        margin: '0 5px',
+                                        padding: '10px 20px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                    }}
+                                >
+                                    <FaRedo style={{ marginRight: '5px' }} /> Khởi động lại
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={handleFileChange}
+                                style={{
+                                    borderRadius: '20px',
+                                    padding: '10px 20px',
+                                    backgroundColor: '#d97d0d',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    fontSize: '18px',
+                                }}
+                            />
+                            <p style={{ color: 'white', textAlign: 'center', marginTop: '10px' }}>Chọn tệp</p>
+                        </div>
+                    )}
+                </div>
+                <div>
+                    <button
+                        onClick={handleOCRClick}
+                        disabled={buttonDisabled || !selectedFile}
+                        style={{
+                            borderRadius: '20px',
+                            backgroundColor: buttonDisabled ? '#ccc' : '#d97d0d',
+                            color: 'white',
+                            cursor: buttonDisabled ? 'default' : 'pointer',
+                            marginTop: '20px',
+                            fontSize: '22px',
+                            padding: '10px 20px',
+                        }}
+                    >
+                        {ocrInProgress ? 'Đang xử lý OCR...' : 'Khởi động OCR'}
+                    </button>
+                </div>
+            </main>
         </div>
-      </main>
-    </div>
-  );
+    );
 };
 
 export default OCRPage;

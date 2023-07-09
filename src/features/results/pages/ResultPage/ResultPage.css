@@ -7,6 +7,10 @@
     background: gainsboro;
 }
 
+.result-page-left-panel {
+    width: 200px;
+}
+
 .result-page-left-section {
     flex: 1;
 }

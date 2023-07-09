@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { performance } from 'perf_hooks';
 import { parseJson } from '../../helper';
 
 export class AxiosInstance {
@@ -7,7 +6,7 @@ export class AxiosInstance {
         const { baseURL, headers } = config;
         const client = axios.create({
             baseURL,
-            timeout: 60000,
+            timeout: 120000,
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Headers': '*',
@@ -23,6 +22,7 @@ export class AxiosInstance {
                     if (typeof response.data === 'string') {
                         response.data = parseJson(response.data);
                     }
+                    response.success = true;
                 } else {
                     const message = 'We had trouble connecting to the server';
                     response.data = {

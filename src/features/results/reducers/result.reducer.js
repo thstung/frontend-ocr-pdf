@@ -3,16 +3,20 @@ import { createSlice } from '@reduxjs/toolkit';
 const resultSlice = createSlice({
     name: 'result',
     initialState: {
-        texts: [],
+        data: [],
+        selectedIndex: -1,
     },
     reducers: {
-        addText(state, action) {
-            state.texts.push(action.payload);
+        addData(state, action) {
+            state.data.push(action.payload);
+        },
+        setSelectedIndex(state, action) {
+            state.selectedIndex = action.payload;
         },
     },
 });
 const { actions, reducer } = resultSlice;
-export const { addText } = actions;
+export const { addData, setSelectedIndex } = actions;
 export const resultStateSelector = (state) => {
     return state.result;
 };
