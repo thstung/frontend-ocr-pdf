@@ -158,7 +158,6 @@ export default function PdfResult() {
     return (
         <div className="pdf-result-wrapper">
             <div className="pdf-result-action">
-                <Button onClick={() => {}}>Show table</Button>
                 <Button onClick={() => addBoxes([{ stroke: 'red' }])}>Add red box</Button>
                 <Button onClick={() => addBoxes([{ stroke: 'blue' }])}>Add blue box</Button>
                 <Button onClick={saveLink}>Save</Button>
