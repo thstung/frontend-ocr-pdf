@@ -29,6 +29,30 @@ export default function TextResult() {
         navigator.clipboard.writeText(input);
     };
 
+    const downloadText = () => {
+        const selectedData = (resultState.data || [])[resultState.selectedIndex];
+        if (!selectedData) return;
+        const data = selectedData.metadata?.text_metadata || [];
+
+        const textOnlyData = data.map((d) => ({ text: d.text }));
+        const reversedTextOnlyData = _.reverse(textOnlyData);
+        const fileName = `text_${Date.now()}`;
+        const json = JSON.stringify(reversedTextOnlyData, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const href = URL.createObjectURL(blob);
+
+        // create "a" HTLM element with href to file
+        const link = document.createElement('a');
+        link.href = href;
+        link.download = fileName + '.json';
+        document.body.appendChild(link);
+        link.click();
+
+        // clean up "a" element & remove ObjectURL
+        document.body.removeChild(link);
+        URL.revokeObjectURL(href);
+    };
+
     return (
         <div className="text-result-wrapper">
             <div className="text-result-data-section">
@@ -39,7 +63,9 @@ export default function TextResult() {
                 <Button icon={<CopyOutlined />} onClick={copyToClipboard}>
                     Copy to clipboard
                 </Button>
-                <Button icon={<DownloadOutlined />}>Download</Button>
+                <Button icon={<DownloadOutlined />} onClick={downloadText}>
+                    Download
+                </Button>
             </div>
         </div>
     );

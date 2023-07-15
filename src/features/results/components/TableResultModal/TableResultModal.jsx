@@ -1,6 +1,7 @@
 import { Button, Modal } from 'antd';
 import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { utils, writeFileXLSX } from 'xlsx';
 import { resultStateSelector, setIsOpenTableResultModal, setIsPreviewVisible } from '../../reducers/result.reducer';
 import TableResultData from '../TableResultData/TableResultData';
 import './TableResultModal.css';
@@ -23,6 +24,15 @@ export default function TableResultModal() {
         dispatch(setIsPreviewVisible(true));
     };
 
+    const downloadTable = () => {
+        const selectedData = resultState.selectedTable;
+        const rows = selectedData?.table_data?.rows || [];
+        const wb = utils.book_new();
+        const ws = utils.aoa_to_sheet(rows);
+        utils.book_append_sheet(wb, ws, `Table 1`);
+        writeFileXLSX(wb, `Table_${Date.now()}.xlsx`);
+    };
+
     return (
         <div className="table-result-modal-wrapper">
             <Modal
@@ -33,6 +43,7 @@ export default function TableResultModal() {
                 onCancel={() => onClose()}
             >
                 <Button onClick={() => openPreview()}>Xem ảnh</Button>
+                <Button onClick={() => downloadTable()}>Tải xuống</Button>
                 <TableResultData metadata={tableMetadata} />
             </Modal>
         </div>

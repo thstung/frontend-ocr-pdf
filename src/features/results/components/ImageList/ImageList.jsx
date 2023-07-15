@@ -29,6 +29,7 @@ export default function ImageList() {
                         <Image
                             width={150}
                             src={item.image_metadata}
+                            className={index === resultState.selectedIndex ? 'selected' : ''}
                             preview={false}
                             onClick={() => onClickImage(index)}
                         />

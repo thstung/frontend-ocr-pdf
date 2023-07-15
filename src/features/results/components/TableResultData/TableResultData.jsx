@@ -14,6 +14,7 @@ export default function TableResultData(props = {}) {
         return rows.map((row, index) => {
             return {
                 key: index,
+                editable: true,
                 ...(row || []).reduce((currentData, currentRowData, currentIndex) => {
                     currentData[currentIndex] = currentRowData;
                     return currentData;
@@ -31,6 +32,7 @@ export default function TableResultData(props = {}) {
             return {
                 dataIndex: index,
                 key: index,
+                editable: true,
             };
         });
     }, [metadata]);

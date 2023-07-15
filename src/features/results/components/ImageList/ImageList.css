@@ -1,0 +1,9 @@
+.image-list-result-wrapper {
+    .ant-image-img {
+        cursor: pointer;
+    }
+
+    .ant-image-img.selected {
+        border: 2px solid red;
+    }
+}

@@ -155,6 +155,18 @@ export default function PdfResult() {
         downloadURI(dataURL, 'data.png');
     };
 
+    const handleKonvaKeyDown = (e) => {
+        if (e.keyCode === 46) {
+            const selectingShape = stageRef.current.findOne(`#${selectedId}`);
+            if (selectingShape) {
+                selectingShape.destroy();
+                selectShape(null);
+            }
+
+            e.preventDefault();
+        }
+    };
+
     return (
         <div className="pdf-result-wrapper">
             <div className="pdf-result-action">
@@ -162,7 +174,7 @@ export default function PdfResult() {
                 <Button onClick={() => addBoxes([{ stroke: 'blue' }])}>Add blue box</Button>
                 <Button onClick={saveLink}>Save</Button>
             </div>
-            <div className="pdf-result-data" ref={divRef}>
+            <div tabIndex={1} className="pdf-result-data" ref={divRef} onKeyDown={(e) => handleKonvaKeyDown(e)}>
                 <Stage
                     width={dimensions.width}
                     height={dimensions.height}

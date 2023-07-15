@@ -427,11 +427,16 @@ import { AxiosInstance } from './plugins/axios';
 import { addData } from './features/results/reducers/result.reducer';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { utils, writeFileXLSX } from 'xlsx';
+import _ from 'lodash';
 
 const OCRPage = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [ocrInProgress, setOcrInProgress] = useState(false);
     const [ocrAfterProgress, setOcrAfterProgress] = useState(false);
+    const [orcTotalPage, setOcrTotalPage] = useState(0);
+    const [ocrProcessedPage, setOcrProcessedPage] = useState(0);
+    const [ocrData, setOcrData] = useState([]);
     const [processingFileName, setProcessingFileName] = useState('');
     const [buttonDisabled, setButtonDisabled] = useState(false);
     const BASE_URL = 'http://localhost:3502';
@@ -447,6 +452,9 @@ const OCRPage = () => {
 
     const handleOCRClick = async () => {
         if (selectedFile) {
+            setOcrTotalPage(0);
+            setOcrProcessedPage(0);
+            setOcrData([]);
             setOcrInProgress(true);
             setProcessingFileName(selectedFile.name);
             setButtonDisabled(true);
@@ -457,8 +465,10 @@ const OCRPage = () => {
             });
             if (response?.success) {
                 const images = response.data || [];
+                setOcrTotalPage(images.length);
                 let index = 1;
                 for (const image of images) {
+                    // if (index > 1) break;
                     const file = base64ToFile(image.page, `page_${index}.jpg`);
                     const formData = new FormData();
                     formData.append('file', file);
@@ -470,8 +480,10 @@ const OCRPage = () => {
                         const data = response?.data || {};
                         data.image_metadata = image.page;
                         dispatch(addData(data));
+                        setOcrData([...ocrData, data]);
                     }
 
+                    setOcrProcessedPage(index);
                     index++;
                 }
             } else {
@@ -487,6 +499,50 @@ const OCRPage = () => {
 
     const handleDownloadClick = () => {
         // Handle download action
+        handleDownloadTextData();
+        handleDownloadTableData();
+    };
+
+    const handleDownloadTextData = () => {
+        const textJsonData = (ocrData || []).map((data) => {
+            const textData = data.metadata?.text_metadata || [];
+            const textOnlyData = textData.map((d) => ({ text: d.text }));
+            const reversedTextOnlyData = _.reverse(textOnlyData);
+            return reversedTextOnlyData;
+        });
+
+        const fileName = `text_${Date.now()}`;
+        const json = JSON.stringify(textJsonData, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const href = URL.createObjectURL(blob);
+
+        // create "a" HTLM element with href to file
+        const link = document.createElement('a');
+        link.href = href;
+        link.download = fileName + '.json';
+        document.body.appendChild(link);
+        link.click();
+
+        // clean up "a" element & remove ObjectURL
+        document.body.removeChild(link);
+        URL.revokeObjectURL(href);
+    };
+    const handleDownloadTableData = () => {
+        const wb = utils.book_new();
+
+        for (let i = 0; i < ocrData.length; i++) {
+            const tableData = ocrData[i];
+            const data = tableData.metadata?.table_metadata || [];
+
+            for (let j = 0; j < data.length; j++) {
+                const tableMetadata = data[j];
+                const rows = tableMetadata?.table_data?.rows || [];
+                const ws = utils.aoa_to_sheet(rows);
+                utils.book_append_sheet(wb, ws, `Table ${i + 1}_${j + 1}`);
+            }
+        }
+
+        writeFileXLSX(wb, `Table_${Date.now()}.xlsx`);
     };
 
     const handlePreviewClick = () => {
@@ -571,7 +627,7 @@ const OCRPage = () => {
                     {ocrInProgress ? (
                         <div>
                             <p style={{ color: 'black', textAlign: 'center' }}>
-                                Công việc đang được xử lý. Xin chờ một chút.
+                                Công việc đang được xử lý. Xin chờ một chút. Tiến độ: {ocrProcessedPage}/{orcTotalPage}
                             </p>
                             <p style={{ color: 'black', textAlign: 'center' }}>{processingFileName}</p>
                         </div>
