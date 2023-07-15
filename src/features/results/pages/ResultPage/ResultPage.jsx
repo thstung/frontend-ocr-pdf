@@ -1,7 +1,8 @@
+import ImageList from '../../components/ImageList/ImageList';
 import PdfResult from '../../components/PdfResult/PdfResult';
 import TextResult from '../../components/TextResult/TextResult';
-import ImageList from '../../components/ImageList/ImageList';
 
+import TableResult from '../../components/TableResult/TableResult';
 import './ResultPage.css';
 
 export default function ResultPage() {
@@ -17,7 +18,9 @@ export default function ResultPage() {
                 <div className="result-page-top-section">
                     <TextResult />
                 </div>
-                <div className="result-page-bottom-section"></div>
+                <div className="result-page-bottom-section">
+                    <TableResult />
+                </div>
             </div>
         </div>
     );

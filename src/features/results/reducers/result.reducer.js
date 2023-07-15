@@ -5,6 +5,9 @@ const resultSlice = createSlice({
     initialState: {
         data: [],
         selectedIndex: -1,
+        isOpenTableResultModal: false,
+        selectedTable: null,
+        isPreviewVisible: false,
     },
     reducers: {
         addData(state, action) {
@@ -13,10 +16,19 @@ const resultSlice = createSlice({
         setSelectedIndex(state, action) {
             state.selectedIndex = action.payload;
         },
+        setIsOpenTableResultModal(state, action) {
+            state.isOpenTableResultModal = action.payload;
+        },
+        setSelectedTable(state, action) {
+            state.selectedTable = action.payload;
+        },
+        setIsPreviewVisible(state, action) {
+            state.isPreviewVisible = action.payload;
+        },
     },
 });
 const { actions, reducer } = resultSlice;
-export const { addData, setSelectedIndex } = actions;
+export const { addData, setSelectedIndex, setIsOpenTableResultModal, setSelectedTable, setIsPreviewVisible } = actions;
 export const resultStateSelector = (state) => {
     return state.result;
 };
