@@ -6,7 +6,7 @@ export class AxiosInstance {
         const { baseURL, headers } = config;
         const client = axios.create({
             baseURL,
-            timeout: 120000,
+            timeout: 360000,
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Headers': '*',
