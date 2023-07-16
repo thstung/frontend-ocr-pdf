@@ -480,7 +480,7 @@ const OCRPage = () => {
                         const data = response?.data || {};
                         data.image_metadata = image.page;
                         dispatch(addData(data));
-                        setOcrData([...ocrData, data]);
+                        setOcrData((prevData) => [...prevData, data]);
                     }
 
                     setOcrProcessedPage(index);
