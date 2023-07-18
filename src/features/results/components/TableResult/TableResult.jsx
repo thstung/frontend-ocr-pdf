@@ -1,5 +1,5 @@
 import { Image, List } from 'antd';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     resultStateSelector,
@@ -15,6 +15,8 @@ export default function TableResult() {
 
     const dispatch = useDispatch();
 
+    const [selectedImageIndex, setSelectedImageIndex] = useState(-1);
+
     const tableList = useMemo(() => {
         if (resultState.selectedIndex < 0) return [];
 
@@ -27,9 +29,10 @@ export default function TableResult() {
         return resultState.isPreviewVisible;
     }, [resultState.isPreviewVisible]);
 
-    const onClickImage = (table) => {
+    const onClickImage = (table, index) => {
         dispatch(setSelectedTable(table));
         dispatch(setIsOpenTableResultModal(true));
+        setSelectedImageIndex(index);
     };
 
     const setVisible = (visible) => {
@@ -48,10 +51,10 @@ export default function TableResult() {
                             width={150}
                             src={table.table_image}
                             preview={{
-                                visible: isPreviewVisible,
+                                visible: isPreviewVisible && index === selectedImageIndex,
                                 onVisibleChange: () => setVisible(false),
                             }}
-                            onClick={() => onClickImage(table)}
+                            onClick={() => onClickImage(table, index)}
                         />
                     </List.Item>
                 )}
