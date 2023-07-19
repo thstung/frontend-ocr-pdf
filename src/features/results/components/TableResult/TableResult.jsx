@@ -21,7 +21,7 @@ export default function TableResult() {
         if (resultState.selectedIndex < 0) return [];
 
         const selectedData = (resultState.data || [])[resultState.selectedIndex];
-        const data = selectedData.metadata?.table_metadata || [];
+        const data = selectedData?.metadata?.table_metadata || [];
         return data;
     }, [resultState.selectedIndex, resultState.data]);
 

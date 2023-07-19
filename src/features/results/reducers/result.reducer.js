@@ -15,6 +15,7 @@ const resultSlice = createSlice({
         },
         resetData(state, action) {
             state.data = [];
+            state.selectedIndex = -1;
         },
         setSelectedIndex(state, action) {
             state.selectedIndex = action.payload;
@@ -31,8 +32,14 @@ const resultSlice = createSlice({
     },
 });
 const { actions, reducer } = resultSlice;
-export const { addData, resetData, etSelectedIndex, setIsOpenTableResultModal, setSelectedTable, setIsPreviewVisible } =
-    actions;
+export const {
+    addData,
+    resetData,
+    setSelectedIndex,
+    setIsOpenTableResultModal,
+    setSelectedTable,
+    setIsPreviewVisible,
+} = actions;
 export const resultStateSelector = (state) => {
     return state.result;
 };
