@@ -424,7 +424,7 @@
 import React, { useState } from 'react';
 import { FaFilePdf, FaDownload, FaEye, FaTrash, FaRedo } from 'react-icons/fa';
 import { AxiosInstance } from './plugins/axios';
-import { addData } from './features/results/reducers/result.reducer';
+import { addData, resetData } from './features/results/reducers/result.reducer';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { utils, writeFileXLSX } from 'xlsx';
@@ -455,6 +455,7 @@ const OCRPage = () => {
             setOcrTotalPage(0);
             setOcrProcessedPage(0);
             setOcrData([]);
+            dispatch(resetData());
             setOcrInProgress(true);
             setProcessingFileName(selectedFile.name);
             setButtonDisabled(true);
