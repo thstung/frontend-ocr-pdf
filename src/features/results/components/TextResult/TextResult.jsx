@@ -56,7 +56,11 @@ export default function TextResult() {
     return (
         <div className="text-result-wrapper">
             <div className="text-result-data-section">
-                <Input.TextArea value={input} onChange={(e) => setInput(e.target.value)} autoSize={{ minRows: 10 }} />
+                <Input.TextArea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    autoSize={{ minRows: 10, maxRows: 29 }}
+                />
             </div>
 
             <div className="text-result-action-section">
