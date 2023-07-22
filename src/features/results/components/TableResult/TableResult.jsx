@@ -9,6 +9,7 @@ import {
 } from '../../reducers/result.reducer';
 import TableResultModal from '../TableResultModal/TableResultModal';
 import './TableResult.css';
+import VirtualList from 'rc-virtual-list';
 
 export default function TableResult() {
     const resultState = useSelector(resultStateSelector);
@@ -40,25 +41,25 @@ export default function TableResult() {
     };
 
     return (
-        <div className="table-result-modal-wrapper">
-            <List
-                rowKey={Date.now()}
-                bordered
-                dataSource={tableList}
-                renderItem={(table, index) => (
-                    <List.Item key={index}>
-                        <Image
-                            width={150}
-                            src={table.table_image}
-                            preview={{
-                                visible: isPreviewVisible && index === selectedImageIndex,
-                                onVisibleChange: () => setVisible(false),
-                            }}
-                            onClick={() => onClickImage(table, index)}
-                        />
-                    </List.Item>
-                )}
-            />
+        <div className="table-result-wrapper">
+            <List>
+                <VirtualList data={tableList} direction="row">
+                    {(table, index) => (
+                        <List.Item key={index}>
+                            <Image
+                                height={100}
+                                width={200}
+                                src={table.table_image}
+                                preview={{
+                                    visible: isPreviewVisible && index === selectedImageIndex,
+                                    onVisibleChange: () => setVisible(false),
+                                }}
+                                onClick={() => onClickImage(table, index)}
+                            />
+                        </List.Item>
+                    )}
+                </VirtualList>
+            </List>
             <TableResultModal />
         </div>
     );

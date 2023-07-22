@@ -16,5 +16,15 @@
 }
 
 .result-page-right-section {
+    display: flex;
+    flex-direction: column;
     flex: 1;
+}
+
+.result-page-top-section {
+    flex: 1;
+}
+
+.result-page-bottom-section {
+    flex: 0 1 100px;
 }
